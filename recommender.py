@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field
 ##### Define your structured output model for the recommendation response #####
 ###############################################################################
 class Recommendation(BaseModel):
-    book_id: str = Field(..., title="The unique identifier of the book")
     title: str = Field(..., title="The title of the book")
+    book_id: int = Field(..., title="Parse unique identifier of the book")
     feedback: str = Field(..., title="The feedback for the book and why it was recommended")
     grade: int = Field(
         ...,
@@ -109,7 +109,7 @@ class LibraryRecommender:
         lines = []
         for _, row in df_books.iterrows():
             line = (
-                f"- Title: {row['title']}, Author: {row['author']}, "
+                f"- Title: {row['title']}, Book_id: {row['book_id']}, Author: {row['author']}, "
                 f"Genre: {row['genre']}, Desc: {row['description']}"
             )
             lines.append(line)
