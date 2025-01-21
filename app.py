@@ -227,8 +227,19 @@ def main():
                                 
                                 if send_email(user_email, "Your Library Recommendation", email_body):
                                     st.success(f"Email sent to {user_email} successfully!")
+                                    st.write("Email Body:" + email_body)
                                 else:
                                     st.error("Failed to send the email.")
+                            # check out book
+                            checkout_flag = st.button("Checkout Book")
+                            if checkout_flag:
+                                try:
+                                    book_id = get_book_id(rec.title)
+                                    user_id = get_user_id(user_for_recs)
+                                    add_checkout_to_db(user_id, book_id)
+                                    st.success(f"Book '{rec.title}' checked out successfully!")
+                                except Exception as e:
+                                    st.error(f"Error checking out book: {e}")
                         except Exception as e:
                             st.error(f"Error: {e}")
                 else:

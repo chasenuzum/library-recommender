@@ -7,6 +7,12 @@ WORKDIR /app
 # Copy local files to the container
 COPY . /app
 
+# Set open ai arg
+ARG OPENAI_API_KEY
+
+# Set environment variables
+ENV OPENAI_API_KEY=$OPENAI_API_KEY
+
 # Install system dependencies for DuckDB and other tools
 RUN apt-get update && apt-get install -y \
     gcc \
