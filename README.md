@@ -95,6 +95,13 @@ Run the Application
 streamlit run app.py
 ```
 
+## Application Screenshot
+
+Below is a preview of the Library Recommendation System in action:
+
+![Top of Screen and DB Interaction](docs/main_screen.png)
+![Recommendation System in Action](docs/recommendation.png)
+
 ## Files and Scripts
 
 ### 1. main.py
