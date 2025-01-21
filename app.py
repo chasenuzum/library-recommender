@@ -1,6 +1,5 @@
 import streamlit as st
 import duckdb
-import pandas as pd
 import os
 
 from recommender import LibraryRecommender  # Your module containing the LibraryRecommender
@@ -45,7 +44,7 @@ def add_book_to_db(title: str, author: str, genre: str, description: str):
 def add_checkout_to_db(user_id: int, book_id: int):
     """Insert a new checkout record into the DuckDB 'checkouts' table."""
     con.execute(
-        "INSERT INTO checkouts VALUES (?, ?)",
+        "INSERT INTO user_checkouts VALUES (?, ?)",
         (int(user_id), int(book_id))
     )
 
@@ -188,64 +187,67 @@ def main():
 
     if user_names:
         with st.expander("Generate Recommendation"):
-            user_for_recs = st.selectbox("Select a user for recommendations", options=user_names)
-            user_query = st.text_area("Enter your question or reading preference here")
+            user_for_recs = st.selectbox("Select a user for recommendations", options=user_names, key="user_for_recs")
+            user_query = st.text_area("Enter your question or reading preference here", key="user_query")
 
-            if st.button("Get Recommendations"):
+            if st.button("Get Recommendations", key="generate_recs"):
                 if user_query.strip():
                     with st.spinner("Generating recommendations..."):
                         try:
+                            # Generate recommendation and store it in session_state
                             rec = recommender.generate_recommendation(
                                 user_name=user_for_recs,
                                 user_input=user_query
                             )
-
-                            # Display the recommendation
-                            st.write("**Recommendation:**")
-                            st.write(f"**Title:** {rec.title}")
-                            st.write(f"**Book ID:** {rec.book_id}")
-                            st.write(f"**Synopsis:** {rec.synopsis}")
-                            st.write(f"**Why You Might Like It:** {rec.feedback}")
-                            st.write(f"**User Grade:** {rec.grade}")
-
-                            # Send the email
-                            send_email_flag = st.button("Send Recommendation via Email")
-                            if send_email_flag:
-                                user_id = get_user_id(user_for_recs)
-                                user_email = get_user_email(user_id)
-                                email_body = f"""
-                                Hi {user_for_recs},
-
-                                Based on your interests, we recommend the following book:
-
-                                Title: {rec.title}
-                                Synopsis: {rec.synopsis}
-                                Why You'll Like It: {rec.feedback}
-
-                                Happy Reading!
-                                """
-                                
-                                if send_email(user_email, "Your Library Recommendation", email_body):
-                                    st.success(f"Email sent to {user_email} successfully!")
-                                    st.write("Email Body:" + email_body)
-                                else:
-                                    st.error("Failed to send the email.")
-                            # check out book
-                            checkout_flag = st.button("Checkout Book")
-                            if checkout_flag:
-                                try:
-                                    book_id = get_book_id(rec.title)
-                                    user_id = get_user_id(user_for_recs)
-                                    add_checkout_to_db(user_id, book_id)
-                                    st.success(f"Book '{rec.title}' checked out successfully!")
-                                except Exception as e:
-                                    st.error(f"Error checking out book: {e}")
+                            st.session_state["recommendation"] = rec  # Save the recommendation to session state
+                            st.success("Recommendation generated successfully!")
                         except Exception as e:
                             st.error(f"Error: {e}")
-                else:
-                    st.warning("Please enter some text first.")
-    else:
-        st.warning("No users available. Add a user first to get recommendations.")
+
+            # Display the recommendation if it exists in session state
+            if "recommendation" in st.session_state:
+                rec = st.session_state["recommendation"]
+
+                st.write("**Recommendation:**")
+                st.write(f"**Title:** {rec.title}")
+                st.write(f"**Book ID:** {rec.book_id}")
+                st.write(f"**Synopsis:** {rec.synopsis}")
+                st.write(f"**Why You Might Like It:** {rec.feedback}")
+                st.write(f"**User Grade:** {rec.grade}")
+
+                # Send the email
+                if st.button("Send Recommendation via Email", key="send_email"):
+                    try:
+                        user_id = get_user_id(user_for_recs)
+                        user_email = get_user_email(user_id)
+                        email_body = f"""
+                        Hi {user_for_recs},
+
+                        Based on your interests, we recommend the following book:
+
+                        Title: {rec.title}
+                        Synopsis: {rec.synopsis}
+                        Why You'll Like It: {rec.feedback}
+
+                        Happy Reading!
+                        """
+                        if send_email(user_email, "Your Library Recommendation", email_body):
+                            st.success(f"Email sent to {user_email} successfully!")
+                            st.write("Email Body:" + email_body)
+                        else:
+                            st.error("Failed to send the email.")
+                    except Exception as e:
+                        st.error(f"Error sending email: {e}")
+
+                # Checkout the book
+                if st.button("Checkout Book", key="checkout_book"):
+                    try:
+                        book_id = get_book_id(rec.title)
+                        user_id = get_user_id(user_for_recs)
+                        add_checkout_to_db(user_id, book_id)
+                        st.success(f"Book '{rec.title}' checked out successfully!")
+                    except Exception as e:
+                        st.error(f"Error checking out book: {e}")
 
 
 if __name__ == "__main__":

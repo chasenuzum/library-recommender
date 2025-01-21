@@ -67,7 +67,7 @@ class LibraryRecommender:
             {checkouts}
 
             Suggest 1 book (from the catalog) that might be relevant or interesting for the user. 
-            Explain your recommendation, provide a rating (1-5), summarize an email to the user, 
+            Explain your recommendation, provide a rating (0-100), summarize an email to the user, 
             and give a brief synopsis of the book. 
             """)
 
@@ -91,7 +91,7 @@ class LibraryRecommender:
         Get the books checked out by a user from the 'checkouts' table.
         """
         df = self.db.execute(
-            f"SELECT b.* FROM user_checkouts uc RIGHT JOIN book b ON uc.book_id = b.book_id WHERE user_id = '{user_id}'"
+            f"SELECT b.* FROM user_checkouts uc RIGHT JOIN books b ON uc.book_id = b.book_id WHERE user_id = '{user_id}'"
         ).fetchdf()
         return df
 

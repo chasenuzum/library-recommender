@@ -17,6 +17,11 @@ This project implements a **Library Recommendation System** using Python, DuckDB
 - **Main Application**:
   - Executes the ingestion process and runs the main recommendation application seamlessly.
 
+- **Streamlit Application**:
+  - User interface that also that acts as a database manager and recommender UI for a librarian
+  - Contains ability to add users/books and track checkouts
+  - Ability in future to send user an email with recommendation
+
 - **Dockerized Setup**:
   - Dockerfile provided for easy deployment and environment consistency.
   - Runs on Python 3.11.
@@ -40,11 +45,12 @@ project/
 ├── requirements.txt        # Python dependencies
 ├── main.py                 # Entry point for the application
 ├── recommender.py          # Recommender system implementation
+├── app.py                  # UI and Streamlit App
 ├── data_collection/        # Directory for data ingestion scripts
 │   └── ingest.py           # Data ingestion script
 ├── data/                   # Directory for data and database files
-│   ├── library_db.duckdb   # DuckDB database (auto-created)
-|   ├── ingest.py          # Running data ingestions
+│   ├── library_db.duckdb   # DuckDB database (auto-created on start-up)
+|   ├── ingest.py           # Running data ingestions
 │   └── csv/                # Directory for CSV input files
 │       ├── book.csv        # Books data
 │       ├── checkouts.csv   # User checkouts data
@@ -56,11 +62,11 @@ project/
 
 Build the Docker Image
 ```bash
-docker build -t library-recommender .
+docker build -t library-recommender --build-arg OPENAI_API_KEY=your_openai_api_key .
 ```
 Run the Application
 ```bash
-docker run -it --rm -v $(pwd)/data:/app/data library-recommender
+docker run --rm -it library-recommender
 ```
 - The container mounts the data directory for accessing CSV files and saving the DuckDB database.
 
@@ -78,9 +84,15 @@ Create a .env file for the OpenAI API key:
 ```bash
 export OPENAI_API_KEY=your_openai_api_key
 ``` 
+
+Run data ingest
+```bash
+python ./data/ingest.py
+```
+
 Run the Application
 ```bash
-python main.py
+streamlit run app.py
 ```
 
 ## Files and Scripts
@@ -90,6 +102,12 @@ python main.py
 The entry point for the application:
 - Runs ingest.py to load data into DuckDB.
 - Executes the recommendation system via app.py.
+
+### 2. app.py
+
+The entry point for the application:
+- Has ability to interact with database, like an admin terminal (Not all ACID methods)
+- Can display recommendations and updates recommendations based on database changes
 
 ### 2. data/ingest.py
 
@@ -105,10 +123,10 @@ Implements the Library Recommender:
 - Fetches user and catalog data.
 - Generates structured recommendations using OpenAI’s GPT models via LangChain.
 - Responses include:
-- Recommended book title.
-- A brief synopsis.
-- Personalized feedback and a grade.
-- A summarized email-ready message.
+  - Recommended book title.
+  - A brief synopsis.
+  - Personalized feedback and a grade.
+  - A summarized email-ready message.
 
 ### 4. Dockerfile
 
