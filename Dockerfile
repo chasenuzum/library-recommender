@@ -28,4 +28,4 @@ RUN mkdir -p /app/data/csv
 EXPOSE 8501
 
 # Default command to run your Python script
-CMD ["python", "app.py"]
+CMD ["python", "main.py"]

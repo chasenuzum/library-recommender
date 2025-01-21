@@ -66,7 +66,7 @@ docker build -t library-recommender --build-arg OPENAI_API_KEY=your_openai_api_k
 ```
 Run the Application
 ```bash
-docker run --rm -it library-recommender
+docker run -p 8501:8501 library-recommender
 ```
 - The container mounts the data directory for accessing CSV files and saving the DuckDB database.
 
